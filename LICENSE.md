@@ -1,6 +1,7 @@
 MIT License
 
 Copyright (c) 2023 The World Bank Group
+Copyright (c) 2026 Gouvernement de la République Démocratique du Congo (MENC/SERNAFOR)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
