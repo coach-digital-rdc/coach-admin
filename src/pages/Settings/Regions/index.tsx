@@ -50,7 +50,7 @@ const Regions = () => {
       setRegions({ isLoading: true, data: [] });
       await RegionService.saveRegion(region);
     } catch (err) {
-      toast.error('An error as ocurred on management of user');
+      toast.error(t('common.error-occurred'));
     }
 
     handleClose();
@@ -185,15 +185,15 @@ const Regions = () => {
       <Modal isOpen={!!deleteIsOpen} onClose={() => setDeleteIsOpen(false)}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Confirm Deletion</ModalHeader>
+          <ModalHeader>{t('common.confirm-deletion')}</ModalHeader>
           <ModalCloseButton />
-          <ModalBody>Are you sure you want to delete this region?</ModalBody>
+          <ModalBody>{t('settings.tabs.region.delete-detail')}</ModalBody>
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={() => setDeleteIsOpen(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button colorScheme="red" onClick={deleteRegion}>
-              Delete
+              {t('common.delete')}
             </Button>
           </ModalFooter>
         </ModalContent>

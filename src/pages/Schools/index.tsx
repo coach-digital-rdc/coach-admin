@@ -103,15 +103,15 @@ const SchoolsPage: React.FC = () => {
       <Modal isOpen={!!schoolToDelete} onClose={onCloseDeleteModal}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Confirm Deletion</ModalHeader>
+          <ModalHeader>{t('common.confirm-deletion')}</ModalHeader>
           <ModalCloseButton />
-          <ModalBody>Are you sure you want to delete this school?</ModalBody>
+          <ModalBody>{t('school.delete-detail')}</ModalBody>
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={onCloseDeleteModal}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button colorScheme="red" onClick={deleteSchool} isLoading={isLoadingDelete}>
-              Delete
+              {t('common.delete')}
             </Button>
           </ModalFooter>
         </ModalContent>

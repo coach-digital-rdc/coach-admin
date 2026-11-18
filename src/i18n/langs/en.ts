@@ -29,6 +29,8 @@ const enTranslation = {
     'needs-improvement': 'Needs improvement',
     good: 'Good',
     excellent: 'Excellent',
+    'confirm-deletion': 'Confirm deletion',
+    'error-occurred': 'An error occurred, please try again',
   },
   Login: {
     email: 'E-mail',
@@ -137,6 +139,12 @@ const enTranslation = {
 
   school: {
     'new-school': 'New school',
+    'delete-detail': 'Are you sure you want to delete this school?',
+    import: {
+      title: 'Import file',
+      'download-template': 'Download template',
+      start: 'Start import',
+    },
     filter: 'School name',
     table: {
       name: 'Name',
@@ -292,6 +300,7 @@ const enTranslation = {
         total_schools: 'Total school: {{ value }}',
         placeholder: 'Region name',
         import: 'Import csv',
+        'delete-detail': 'Are you sure you want to delete this region?',
         'import-title': 'Import regions file',
         'items-imported-fail': 'Items that failed to import',
         'items-imported-success': 'All items was imported',

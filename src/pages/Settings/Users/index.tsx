@@ -36,7 +36,7 @@ const Users = () => {
       await UserService.removeUser(userId);
       refreshUsers();
     } catch (err) {
-      toast.error('An error as ocurred on delete of user');
+      toast.error(t('common.error-occurred'));
     }
   };
 
@@ -49,7 +49,7 @@ const Users = () => {
         await AuthService.sighup(user);
       }
     } catch (err) {
-      toast.error('An error as ocurred on management of user');
+      toast.error(t('common.error-occurred'));
     }
 
     setCurrentUser(undefined);

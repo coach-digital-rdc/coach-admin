@@ -22,10 +22,16 @@ import UserCard from '../UserCard';
 import { ChevronDownIcon, HamburgerIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
-const LANG_OPTIONS = [
-  { label: '🇺🇸 English (US)', value: 'en' },
-  { label: '🇳🇵 Nepali', value: 'np' },
-];
+const LANG_OPTIONS =
+  import.meta.env.VITE_COUNTRY === 'cd'
+    ? [
+        { label: '🇨🇩 Français', value: 'fr' },
+        { label: '🇺🇸 English (US)', value: 'en' },
+      ]
+    : [
+        { label: '🇺🇸 English (US)', value: 'en' },
+        { label: '🇳🇵 Nepali', value: 'np' },
+      ];
 
 const Navbar: React.FC = () => {
   const { logout, user, updateLocalUser } = useContext(UserContext);
@@ -95,7 +101,7 @@ const Navbar: React.FC = () => {
           as={Button}
           rightIcon={<ChevronDownIcon />}
         >
-          {LANG_OPTIONS.filter((item) => item.value === i18n.language)[0].label}
+          {(LANG_OPTIONS.find((item) => item.value === i18n.language) || LANG_OPTIONS[0]).label}
         </MenuButton>
         <MenuList>
           {LANG_OPTIONS.map((item) => (

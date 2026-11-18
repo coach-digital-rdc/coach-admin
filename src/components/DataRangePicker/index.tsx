@@ -12,10 +12,23 @@ import {
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface State {
   selection: Range;
 }
+const frenchDefinedRangeLabels: any = {
+  Today: "Aujourd'hui",
+  Yesterday: 'Hier',
+  'Last 7 Days': '7 derniers jours',
+  'Last 30 Days': '30 derniers jours',
+  'This Week': 'Cette semaine',
+  'Last Week': 'La semaine dernière',
+  'This Month': 'Ce mois-ci',
+  'Last Month': 'Le mois dernier',
+  'Custom Range': 'Période personnalisée',
+};
+
 const nepaliDefinedRangeLabels: any = {
   Today: 'आज',
   Yesterday: 'हिजो',
@@ -148,10 +161,11 @@ const DataRangePicker: React.FC<Props> = ({ onChange }) => {
             renderStaticRangeLabel={(staticRange) => {
               return (
                 (i18n.language === 'np' && staticRange.label && nepaliDefinedRangeLabels[staticRange.label]) ||
+                (i18n.language === 'fr' && staticRange.label && frenchDefinedRangeLabels[staticRange.label]) ||
                 staticRange.label
               );
             }}
-            locale={i18n.language === 'np' ? nepaliLocale : undefined}
+            locale={i18n.language === 'np' ? nepaliLocale : i18n.language === 'fr' ? fr : undefined}
             onChange={handleSelect}
             ranges={[state.selection]}
             rangeColors={['#3d91ff']}
