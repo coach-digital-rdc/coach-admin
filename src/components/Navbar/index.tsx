@@ -22,16 +22,10 @@ import UserCard from '../UserCard';
 import { ChevronDownIcon, HamburgerIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
 
-const LANG_OPTIONS =
-  import.meta.env.VITE_COUNTRY === 'cd'
-    ? [
-        { label: '🇨🇩 Français', value: 'fr' },
-        { label: '🇺🇸 English (US)', value: 'en' },
-      ]
-    : [
-        { label: '🇺🇸 English (US)', value: 'en' },
-        { label: '🇳🇵 Nepali', value: 'np' },
-      ];
+const LANG_OPTIONS = [
+  { label: '🇨🇩 Français', value: 'fr' },
+  { label: '🇺🇸 English (US)', value: 'en' },
+];
 
 const Navbar: React.FC = () => {
   const { logout, user, updateLocalUser } = useContext(UserContext);
