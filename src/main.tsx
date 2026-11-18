@@ -12,7 +12,7 @@ import { BrowserRouter } from 'react-router-dom';
 import '@fontsource/noto-sans';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
-import { NepalFavicon } from './assets/images/logos';
+import { CoachLogoCD, NepalFavicon } from './assets/images/logos';
 
 const changeFavicon = () => {
   const link = document.querySelector('link[rel="icon"]');
@@ -23,6 +23,11 @@ const changeFavicon = () => {
 
   if (link && import.meta.env.VITE_COUNTRY === 'sl') {
     document.title = 'Coach SL';
+  }
+
+  if (link && import.meta.env.VITE_COUNTRY === 'cd') {
+    link.setAttribute('href', CoachLogoCD);
+    document.title = 'Coach Digital RDC';
   }
 };
 
