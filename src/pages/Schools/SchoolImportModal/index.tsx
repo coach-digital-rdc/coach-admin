@@ -17,6 +17,7 @@ import {
 import Papa from 'papaparse';
 import { useState } from 'react';
 import { saveAs } from 'file-saver';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   isOpen: boolean;
@@ -24,6 +25,7 @@ type Props = {
 };
 
 const SchoolImportModal: React.FC<Props> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const [header, setHeader] = useState<string[]>([]);
   const [arrayData, setArrayData] = useState<string[][]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +73,7 @@ const SchoolImportModal: React.FC<Props> = ({ isOpen, onClose }) => {
     <Modal isOpen={isOpen} onClose={onClose} scrollBehavior="inside" size="5xl">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Import file</ModalHeader>
+        <ModalHeader>{t('school.import.title')}</ModalHeader>
         <ModalCloseButton />
         {isLoading ? (
           <ModalBody>
@@ -81,7 +83,9 @@ const SchoolImportModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <ModalBody>
             <VStack w="full">
               <Text fontSize={28} mb={8}>
-                {!!response.failItems?.length ? 'Items that failed to import' : 'All items was imported'}
+                {!!response.failItems?.length
+                  ? t('settings.tabs.region.items-imported-fail')
+                  : t('settings.tabs.region.items-imported-success')}
               </Text>
               <HStack w="full" px={4} borderBottom="1px solid">
                 <Box fontWeight="bold" w="50px" />
@@ -149,12 +153,12 @@ const SchoolImportModal: React.FC<Props> = ({ isOpen, onClose }) => {
             mr={3}
             onClick={() => saveAs(csvBlob, 'School import template')}
           >
-            Download template
+            {t('school.import.download-template')}
           </Button>
 
           {!isLoading && !response && (
             <Button colorScheme="blue" mr={3} isDisabled={!arrayData.length} onClick={startImport}>
-              Start import
+              {t('school.import.start')}
             </Button>
           )}
 
