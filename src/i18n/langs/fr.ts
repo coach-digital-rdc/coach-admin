@@ -145,6 +145,8 @@ const frTranslation = {
       title: 'Importer un fichier',
       'download-template': 'Télécharger le modèle',
       start: "Lancer l'import",
+      'template-header': 'numero_secope,nom,province,proved,sous_proved',
+      'template-name': "Modèle d'import des établissements",
     },
     filter: "Nom de l'établissement",
     table: {

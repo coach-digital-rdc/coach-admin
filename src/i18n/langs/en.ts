@@ -144,6 +144,8 @@ const enTranslation = {
       title: 'Import file',
       'download-template': 'Download template',
       start: 'Start import',
+      'template-header': 'emis_number,name,region,city,municipalities',
+      'template-name': 'School import template',
     },
     filter: 'School name',
     table: {

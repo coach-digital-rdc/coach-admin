@@ -67,7 +67,7 @@ const SchoolImportModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setResponse(undefined);
   };
 
-  var csvBlob = new Blob(['emis_number,name,region,city,municipalities'], { type: 'text/csv;charset=utf-8' });
+  var csvBlob = new Blob([t('school.import.template-header') as string], { type: 'text/csv;charset=utf-8' });
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} scrollBehavior="inside" size="5xl">
@@ -91,7 +91,7 @@ const SchoolImportModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 <Box fontWeight="bold" w="50px" />
                 {header.map((_, index) => (
                   <Box flex={index === 1 ? 2 : 1} fontWeight="black">
-                    {index === 0 ? 'Code' : index === 1 ? 'Name' : 'Region-' + (index - 2)}
+                    {index === 0 ? t('school.table.emis_number') : index === 1 ? t('school.table.name') : t(`settings.tabs.region.${index - 2}.title`)}
                   </Box>
                 ))}
               </HStack>
@@ -119,7 +119,7 @@ const SchoolImportModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   <Box fontWeight="bold" w="50px"></Box>
                   {header.map((_, index) => (
                     <Box flex={index === 1 ? 2 : 1} fontWeight="black">
-                      {index === 0 ? 'Code' : index === 1 ? 'Name' : 'Region-' + (index - 2)}
+                      {index === 0 ? t('school.table.emis_number') : index === 1 ? t('school.table.name') : t(`settings.tabs.region.${index - 2}.title`)}
                     </Box>
                   ))}
                 </HStack>
@@ -151,7 +151,7 @@ const SchoolImportModal: React.FC<Props> = ({ isOpen, onClose }) => {
             borderColor={'Primary.$200'}
             color={'Primary.$200'}
             mr={3}
-            onClick={() => saveAs(csvBlob, 'School import template')}
+            onClick={() => saveAs(csvBlob, `${t('school.import.template-name')}.csv`)}
           >
             {t('school.import.download-template')}
           </Button>
