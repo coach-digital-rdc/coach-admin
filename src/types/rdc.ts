@@ -231,3 +231,14 @@ export interface LearningCircle {
   coach_id?: string;
   coach_name?: string;
 }
+
+export interface ExportData {
+  sessions: RdcSession[];
+  scores: (SessionDetails['scores'][number] & { session_id: string })[];
+  answers: (SessionDetails['answers'][number] & { session_id: string })[];
+  documentations: (SessionDetails['documentations'][number] & { session_id: string })[];
+  pdps: { id: string; session_id: string; status?: string; validated_at?: string; rule_set_version?: number }[];
+  objectives: (RdcPdpObjective & { pdp_id: string })[];
+  competencies: RdcCompetence[];
+  checklist: RdcChecklistItem[];
+}

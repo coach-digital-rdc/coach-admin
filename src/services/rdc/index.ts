@@ -9,6 +9,7 @@ import {
   RdcDashboard,
   RdcSession,
   SessionDetails,
+  ExportData,
 } from '@/types/rdc';
 
 export type Period = { startDate?: Date; endDate?: Date };
@@ -25,6 +26,8 @@ export const RdcService = {
 
   getSessions: async (regionId?: string): Promise<RdcSession[]> =>
     (await _axios.get('session', { params: { regionId } })).data,
+  getExportData: async (regionId?: string): Promise<ExportData> =>
+    (await _axios.get('session/export', { params: { regionId } })).data,
   getSessionDetails: async (id: string): Promise<SessionDetails> => (await _axios.get(`session/${id}/details`)).data,
 
   getLearningCircles: async (regionId?: string): Promise<LearningCircle[]> =>
