@@ -19,7 +19,7 @@ import {
   useTheme,
 } from '@chakra-ui/react';
 import RegionForm from './Form';
-import { toast } from 'react-toastify';
+import { toast } from '@/common/alert';
 import { useTranslation } from 'react-i18next';
 import RegionService from '@/services/region';
 import RegionImportModal from './RegionImportModal';

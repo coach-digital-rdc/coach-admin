@@ -7,7 +7,7 @@ import Loader from '@/components/Base/Loader';
 import UserService from '@/services/user';
 import AuthService from '@/services/auth';
 import Icon from '@/components/Base/Icon';
-import { toast } from 'react-toastify';
+import { toast } from '@/common/alert';
 import Menu from '@/components/Menu';
 import { IUser } from '@/types';
 import UserForm from './Form';

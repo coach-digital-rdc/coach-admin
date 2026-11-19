@@ -1,7 +1,5 @@
 import { ChakraProvider } from '@chakra-ui/react';
 import { lightTheme } from './styles/themes/light';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import UserContextProvider from './contexts/UserContext';
 import ReactDOM from 'react-dom/client';
 import { Router } from './routes';
@@ -9,7 +7,11 @@ import './styles/index.css';
 import React from 'react';
 import './i18n';
 import { BrowserRouter } from 'react-router-dom';
-import '@fontsource/noto-sans';
+import '@fontsource/noto-sans/400.css';
+import '@fontsource/noto-sans/500.css';
+import '@fontsource/noto-sans/600.css';
+import '@fontsource/noto-sans/700.css';
+import '@fontsource/noto-sans/800.css';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import { CoachLogoCD } from './assets/images/logos';
@@ -29,17 +31,6 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <ChakraProvider theme={lightTheme}>
       <BrowserRouter>
         <UserContextProvider>
-          <ToastContainer
-            position="top-center"
-            autoClose={2000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
           <Router />
         </UserContextProvider>
       </BrowserRouter>

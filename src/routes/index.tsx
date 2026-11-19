@@ -1,48 +1,38 @@
-import { AnimatePresence } from 'framer-motion';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useContext } from 'react';
 import { UserContext } from '../contexts/UserContext';
 import { ProtectedLayout } from '../components/Layouts/ProtectedLayout';
 import Login from '@/pages/Login';
 import DashboardPage from '@/pages/Dashboard';
-import CompetenciesPage from '@/pages/Competencies';
-import QuestionsPage from '@/pages/Questions';
+import ObservationsPage from '@/pages/Observations';
+import SessionDetailPage from '@/pages/Observations/Detail';
 import SchoolsPage from '@/pages/Schools';
 import CoachesPage from '@/pages/Coaches';
-import SessionsPage from '@/pages/Sessions';
 import SettingsPage from '@/pages/Settings';
 import TeachersPage from '@/pages/Teacher';
 import SyncsPage from '@/pages/Sync';
-import CoachActivity from '@/pages/CoachActivity';
-import SessionDataPage from '@/pages/SessionData';
 
 export const Router = () => {
   const { user } = useContext(UserContext);
+  const location = useLocation();
 
   return (
-    <AnimatePresence>
-      <Routes location={location} key={location.pathname}>
-        {!user ? (
-          <>
-            <Route path={`/admin`} element={<Login />} />
-          </>
-        ) : (
-          <Route path={`/admin`} element={<ProtectedLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="teaching-practices" element={<CompetenciesPage />} />
-            <Route path="coaching-sessions" element={<SessionsPage />} />
-            <Route path="coach-over-time" element={<CoachActivity />} />
-            <Route path="session-data" element={<SessionDataPage />} />
-            <Route path="questions" element={<QuestionsPage />} />
-            <Route path="schools" element={<SchoolsPage />} />
-            <Route path="coaches" element={<CoachesPage />} />
-            <Route path="teachers" element={<TeachersPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="syncs" element={<SyncsPage />} />
-          </Route>
-        )}
-        <Route path="*" element={<Navigate to={`/admin`} replace />} />
-      </Routes>
-    </AnimatePresence>
+    <Routes location={location}>
+      {!user ? (
+        <Route path="/admin" element={<Login />} />
+      ) : (
+        <Route path="/admin" element={<ProtectedLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="sessions" element={<ObservationsPage />} />
+          <Route path="sessions/:id" element={<SessionDetailPage />} />
+          <Route path="schools" element={<SchoolsPage />} />
+          <Route path="coaches" element={<CoachesPage />} />
+          <Route path="teachers" element={<TeachersPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="syncs" element={<SyncsPage />} />
+        </Route>
+      )}
+      <Route path="*" element={<Navigate to="/admin" replace />} />
+    </Routes>
   );
 };

@@ -1,224 +1,427 @@
-import { useEffect, useState } from 'react';
-import { Box, Button, Center, Flex, HStack, Text, VStack, useBreakpointValue } from '@chakra-ui/react';
-import { IDashboard, IStars, ITeachingPractices } from '@/types';
-import DashboardService from '@/services/dashboard';
-import Loader from '@/components/Base/Loader';
-import { CardValue } from './components/CardValue';
-import { SpeedometerGraph } from './components/SpeedometerGraph';
-import { DoughnutGraph } from './components/DoughnutGraph';
-import { BarGraph } from './components/BarGraph';
-import { HorizontalBar } from './components/HorizontalBar';
-import { useUserContext } from '@/contexts/UserContext';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Box, Flex, HStack, Progress, SimpleGrid, Table, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
-import RegionSelect from '../Schools/SchoolForm/RegionSelect';
-import DataRangePicker from '@/components/DataRangePicker';
-import { Range } from 'react-date-range';
+import {
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  ChartOptions,
+  Legend,
+  LinearScale,
+  Tooltip,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { Card, CardHeader, EmptyState, PageHeader, ScorePill, SkeletonCards, StatCard } from '@/components/ui';
+import { PeriodFilter, PeriodKey, RegionFilter, periodOf } from '@/components/Filters';
+import RdcService from '@/services/rdc';
+import { RdcDashboard } from '@/types/rdc';
+import { APPRECIATIONS, appreciationLabel, formatNumber, functionLabel } from '@/common/labels';
+import { alertError } from '@/common/alert';
+import { useUserContext } from '@/contexts/UserContext';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+
+const INK = '#576375';
+const GRID = '#EEF0F3';
+// Global scores 1 to 5: one hue, light to dark (sequential)
+const SCORE_RAMP = ['#C2E0FF', '#99CBFF', '#5C9DE6', '#3373CC', '#0052A3'];
+
+const baseOptions = (horizontal = false): ChartOptions<'bar'> => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  indexAxis: horizontal ? 'y' : 'x',
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#111417',
+      padding: 10,
+      cornerRadius: 8,
+      titleFont: { family: 'Noto Sans', weight: 'bold' },
+      bodyFont: { family: 'Noto Sans' },
+    },
+  },
+  scales: {
+    x: {
+      grid: { color: horizontal ? GRID : 'transparent' },
+      border: { display: false },
+      ticks: { color: INK, font: { family: 'Noto Sans', size: 12 }, precision: 0 },
+    },
+    y: {
+      grid: { color: horizontal ? 'transparent' : GRID },
+      border: { display: false },
+      ticks: { color: INK, font: { family: 'Noto Sans', size: 12 }, precision: 0 },
+      beginAtZero: true,
+    },
+  },
+});
+
+const MiniBar: React.FC<{ value: number; max: number }> = ({ value, max }) => (
+  <Progress value={max ? (value / max) * 100 : 0} size="xs" borderRadius="full" bg="ink.100" w="80px" />
+);
 
 const DashboardPage: React.FC = () => {
-  const { user, userRegionsPath } = useUserContext();
-  const { t } = useTranslation();
-  const [loading, setLoading] = useState(false);
-  const [dateRange, setDateRange] = useState<Range>();
-  const [dashboard, setDashboard] = useState<IDashboard>();
-  const [regionId, setRegionId] = useState(user?.region_id);
-  const [selected, setSelected] = useState<ITeachingPractices>();
-  const isMobile = useBreakpointValue({ base: true, md: false });
+  const { t, i18n } = useTranslation();
+  const { user } = useUserContext();
+  const [regionId, setRegionId] = useState<string | undefined>(user?.region_id);
+  const [periodKey, setPeriodKey] = useState<PeriodKey>('school-year');
+  const [data, setData] = useState<RdcDashboard>();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && user) {
-      setLoading(true);
-
-      DashboardService.getData(regionId || user.region?.id, dateRange).then((data) => {
-        setDashboard(data);
-        setSelected(data?.teachingPractices[0]);
-        setLoading(false);
+    let cancelled = false;
+    setIsLoading(true);
+    RdcService.getDashboard(regionId, periodOf(periodKey))
+      .then((result) => {
+        if (!cancelled) setData(result);
+      })
+      .catch((error) => {
+        if (!cancelled) alertError(error);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
       });
-    }
-  }, [user, regionId, dateRange]);
+    return () => {
+      cancelled = true;
+    };
+  }, [regionId, periodKey]);
 
-  const handleRegion = (newRegionId?: string) => {
-    if (newRegionId !== regionId) setRegionId(newRegionId);
-  };
+  const monthLabel = (month: string) =>
+    new Date(`${month}-01T00:00:00`).toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : 'en-GB', {
+      month: 'short',
+      year: '2-digit',
+    });
 
-  const calcAverageStars = (stars: IStars) => {
-    const total = stars.needsWork + stars.keepWorking + stars.needsAttention + stars.almostThere + stars.doingGreat;
+  const scoresChart = useMemo(() => {
+    if (!data) return undefined;
+    const rows = data.bySubDomain;
+    return {
+      labels: rows.map((row) => `${row.code} · ${row.title}`),
+      datasets: [1, 2, 3, 4, 5].map((score, index) => ({
+        label: t('dash.score-n', { value: score }),
+        data: rows.map((row) => {
+          const total = row.score_1 + row.score_2 + row.score_3 + row.score_4 + row.score_5;
+          return total ? Math.round(((row as any)[`score_${score}`] / total) * 100) : 0;
+        }),
+        backgroundColor: SCORE_RAMP[index],
+        borderColor: '#FFFFFF',
+        borderWidth: 2,
+        borderRadius: 4,
+        borderSkipped: false,
+        barThickness: 22,
+      })),
+    };
+  }, [data, t]);
 
-    if (total === 0) return 0;
-
-    return (
-      (stars.needsWork * 1 +
-        stars.keepWorking * 2 +
-        stars.needsAttention * 3 +
-        stars.almostThere * 4 +
-        stars.doingGreat * 5) /
-      total
-    );
-  };
-
-  const handleChangeDateRange = (range?: Range) => {
-    if (range) {
-      if (dateRange?.startDate !== range.startDate || dateRange?.endDate !== range.endDate) {
-        setDateRange(range);
-      }
-    } else {
-      setDateRange(undefined);
-    }
-  };
+  const totals = data?.totals;
+  const appreciationTotal = data?.appreciations.reduce((sum, item) => sum + item.count, 0) || 0;
+  const maxFunction = Math.max(1, ...(data?.byFunction.map((row) => row.sessions) || [0]));
+  const maxArea = Math.max(1, ...(data?.byArea.map((row) => row.sessions) || [0]));
+  const empty = !isLoading && totals?.sessions === 0;
 
   return (
-    <VStack mx="auto" w="full" minH="100vh" maxW="1200px" position="relative" p="56px" alignItems="flex-start">
-      <Flex mb="20px" flexDir={isMobile ? 'column' : 'row'} w="full">
-        <Flex flex={1}>
-          <RegionSelect fixedItems={userRegionsPath} direction="row" level={0} onSelect={handleRegion} />
-        </Flex>
-        <Flex
-          flex={1}
-          ml={isMobile ? 0 : '12px'}
-          mt={isMobile ? '12px' : 0}
-          maxW={isMobile ? undefined : '270px'}
-          w="full"
-        >
-          <DataRangePicker onChange={handleChangeDateRange} />
-        </Flex>
-      </Flex>
-
-      {loading || !dashboard || !selected ? (
-        <Center w={'100%'} mt="80px">
-          <Loader />
-        </Center>
-      ) : (
-        <>
-          <VStack gap="16px" w="full" alignItems="flex-start">
-            <Text color="#111417" fontSize="24px" fontWeight={600}>
-              {t('dashboard.engagement.title')}
-            </Text>
-            <Text color="#111417" fontSize="16px" lineHeight="24px">
-              {t('dashboard.engagement.description')}
-            </Text>
-            <HStack gap="16px" alignItems="stretch" w="full">
-              <CardValue
-                label={t('dashboard.engagement.teachers-coached')}
-                value={dashboard.engagement.teachersCoached}
-              />
-              <CardValue label={t('dashboard.engagement.active-coaches')} value={dashboard.engagement.activeCoaches} />
-              <CardValue
-                label={t('dashboard.engagement.coaching-sessions')}
-                value={dashboard.engagement.coachingSessions}
-              />
-              <CardValue
-                label={t('dashboard.teachers-did-not-have-a-feedback-session')}
-                value={selected.data.teacherWithoutFeedback}
-              />
-            </HStack>
-            <HStack gap="16px" w="full">
-              <SpeedometerGraph
-                label={t('dashboard.engagement.coaching-sessions-per-teacher-over-last-three-months')}
-                value={dashboard.engagement.coachingSessionPerTeacher}
-                maxValue={dashboard.engagement.coachingSessionPerTeacherGoal}
-              />
-              <DoughnutGraph
-                direction="column"
-                labels={[t('dashboard.engagement.completed-a-second-coach-session'), 'Without a second coach sessions']}
-                values={[
-                  dashboard.engagement.teacherThatCompletedSecondSession,
-                  dashboard.engagement.teachersCoached - dashboard.engagement.teacherThatCompletedSecondSession,
-                ]}
-                label={t('dashboard.engagement.completed-a-second-coach-session') || ''}
-                title={
-                  (dashboard.engagement.teachersCoached
-                    ? (dashboard.engagement.teacherThatCompletedSecondSession / dashboard.engagement.teachersCoached) *
-                      100
-                    : 0
-                  ).toFixed(0) + '%'
-                }
-                subTitle={t('dashboard.of_teacher') || ''}
-              />
-            </HStack>
-          </VStack>
-
-          <VStack w="full" alignItems="flex-start" my="24px">
-            <Text color="#111417" fontSize="24px" fontWeight={600}>
-              {t('dashboard.targeted-improvement-areas.title')}
-            </Text>
-            <Text color="#111417" fontSize="16px" lineHeight="24px" mb="8px">
-              {t('dashboard.targeted-improvement-areas.description')}
-            </Text>
-
-            <DoughnutGraph
-              direction="row"
-              showLegend={true}
-              labels={dashboard.teachingPractices.map((item) => item.name)}
-              values={dashboard.teachingPractices.map((item) => item.data.teachers)}
-            />
-          </VStack>
-
-          <Text mb="8px" color="#111417" fontWeight={500} fontSize={'16px'} mt="24px">
-            {t('dashboard.select-teaching-practices-to-show')}
-          </Text>
-
-          <Box maxW="full" overflow="scroll">
-            <HStack mb="56px" w="1300px">
-              {dashboard.teachingPractices.map((item) => (
-                <Button
-                  py="8px"
-                  px="12px"
-                  key={item.name}
-                  fontWeight={400}
-                  fontSize={'16px'}
-                  borderRadius="full"
-                  border="1px solid #DCE0E5"
-                  onClick={() => setSelected(item)}
-                  bg={selected.name === item.name ? '#C2E0FF' : '#ffffff'}
-                  color={selected.name === item.name ? '#264673' : '#111417'}
-                >
-                  {item.name}
-                </Button>
-              ))}
-            </HStack>
-          </Box>
-
-          <Text color="#111417" fontSize="24px" fontWeight={600}>
-            {selected.name}
-          </Text>
-
-          <Flex flexDir={isMobile ? 'column' : 'row'} w="full" mt="24px" alignItems="stretch">
-            <BarGraph
-              labels={[
-                t('dashboard.needs-work'),
-                t('dashboard.keep-working'),
-                t('dashboard.needs-attention'),
-                t('dashboard.almost-there'),
-                t('dashboard.doing-great'),
-              ]}
-              values={[
-                selected.data.stars.needsWork,
-                selected.data.stars.keepWorking,
-                selected.data.stars.needsAttention,
-                selected.data.stars.almostThere,
-                selected.data.stars.doingGreat,
-              ]}
-            />
-
-            <VStack mt={isMobile ? 4 : 0} ml={isMobile ? 0 : 4} flex={3} alignItems="stretch">
-              <HStack alignItems="stretch">
-                <CardValue
-                  label={t('dashboard.teachers-showing-improvement-or-mastery')}
-                  value={selected.data.teachersShowingImprovement}
-                />
-                <CardValue
-                  label={t('dashboard.teachers-and-coaches-chose-to-work-on-improving-this-practice')}
-                  value={selected.data.teachers}
-                />
-              </HStack>
-
-              <VStack justifyContent="center" flex={2} alignItems="center" bg="#F2F4F7" borderRadius="16px" p={'32px'}>
-                <HorizontalBar labels={[t('dashboard.average')]} values={[calcAverageStars(selected.data.stars)]} />
-              </VStack>
-            </VStack>
+    <Box>
+      <PageHeader
+        eyebrow={t('menu.steering')}
+        title={t('dash.title')}
+        subtitle={t('dash.subtitle')}
+        actions={
+          <Flex gap={2} direction={{ base: 'column', md: 'row' }} w={{ base: 'full', md: 'auto' }}>
+            <RegionFilter onChange={setRegionId} />
+            <PeriodFilter value={periodKey} onChange={setPeriodKey} />
           </Flex>
-        </>
+        }
+      />
+
+      {isLoading && !data ? (
+        <SkeletonCards count={4} />
+      ) : (
+        <SimpleGrid columns={{ base: 1, sm: 2, xl: 4 }} spacing={4}>
+          <StatCard
+            icon="clipboard-notes"
+            label={t('dash.kpi.sessions')}
+            value={formatNumber(totals?.closed_sessions, 0)}
+            hint={t('dash.kpi.sessions-hint', { count: (totals?.sessions || 0) - (totals?.closed_sessions || 0) })}
+            isLoading={isLoading}
+          />
+          <StatCard
+            icon="graduation-cap"
+            tone="teal"
+            label={t('dash.kpi.teachers')}
+            value={formatNumber(totals?.teachers, 0)}
+            hint={t('dash.kpi.schools', { count: totals?.schools || 0 })}
+            isLoading={isLoading}
+          />
+          <StatCard
+            icon="user-circle"
+            tone="violet"
+            label={t('dash.kpi.observers')}
+            value={formatNumber(totals?.observers, 0)}
+            hint={t('dash.kpi.circles', {
+              count: data?.learningCircles.sessions || 0,
+              participants: data?.learningCircles.participants || 0,
+            })}
+            isLoading={isLoading}
+          />
+          <StatCard
+            icon="award"
+            tone="green"
+            label={t('dash.kpi.average')}
+            value={totals?.average_score ? `${formatNumber(totals.average_score)} / 5` : '—'}
+            hint={t('dash.kpi.pdps', { validated: data?.pdps.validated || 0, total: data?.pdps.total || 0 })}
+            isLoading={isLoading}
+          />
+        </SimpleGrid>
       )}
-    </VStack>
+
+      {empty ? (
+        <Card mt={6}>
+          <EmptyState icon="chart-line" title={t('dash.empty')} description={t('dash.empty-description')} />
+        </Card>
+      ) : (
+        data && (
+          <>
+            <SimpleGrid columns={{ base: 1, xl: 3 }} spacing={4} mt={4}>
+              <Card gridColumn={{ xl: 'span 2' }}>
+                <CardHeader title={t('dash.months')} subtitle={t('dash.months-subtitle')} />
+                <Box px={5} pb={5} h="260px">
+                  <Bar
+                    options={baseOptions()}
+                    data={{
+                      labels: data.months.map((row) => monthLabel(row.month)),
+                      datasets: [
+                        {
+                          label: t('dash.kpi.sessions'),
+                          data: data.months.map((row) => row.sessions),
+                          backgroundColor: '#3373CC',
+                          hoverBackgroundColor: '#0052A3',
+                          borderRadius: 4,
+                          maxBarThickness: 36,
+                        },
+                      ],
+                    }}
+                  />
+                </Box>
+              </Card>
+
+              <Card>
+                <CardHeader title={t('dash.appreciations')} subtitle={t('dash.appreciations-subtitle')} />
+                <Box px={5} pb={5}>
+                  {APPRECIATIONS.map((code) => {
+                    const count = data.appreciations.find((item) => item.appreciation === code)?.count || 0;
+                    const share = appreciationTotal ? (count / appreciationTotal) * 100 : 0;
+                    return (
+                      <Box key={code} py={2}>
+                        <HStack justify="space-between" mb={1}>
+                          <Text fontSize="14px" color="ink.800" fontWeight={500}>
+                            {appreciationLabel(code)}
+                          </Text>
+                          <Text fontSize="13px" color="ink.600">
+                            {count} · {Math.round(share)} %
+                          </Text>
+                        </HStack>
+                        <Progress value={share} size="sm" borderRadius="full" bg="ink.100" />
+                      </Box>
+                    );
+                  })}
+                  {appreciationTotal === 0 && (
+                    <Text fontSize="13px" color="ink.500" pt={2}>
+                      {t('dash.no-appreciation')}
+                    </Text>
+                  )}
+                </Box>
+              </Card>
+            </SimpleGrid>
+
+            <Card mt={4}>
+              <CardHeader title={t('dash.scores')} subtitle={t('dash.scores-subtitle')} />
+              <HStack px={5} spacing={4} flexWrap="wrap" aria-hidden>
+                {SCORE_RAMP.map((color, index) => (
+                  <HStack key={color} spacing={1.5}>
+                    <Box w="12px" h="12px" borderRadius="3px" bg={color} />
+                    <Text fontSize="12px" color="ink.600">
+                      {t('dash.score-n', { value: index + 1 })}
+                    </Text>
+                  </HStack>
+                ))}
+              </HStack>
+              <Box px={5} pb={5} pt={2} h={`${Math.max(180, data.bySubDomain.length * 44 + 40)}px`}>
+                {scoresChart && (
+                  <Bar
+                    data={scoresChart}
+                    options={{
+                      ...baseOptions(true),
+                      plugins: {
+                        ...baseOptions(true).plugins,
+                        tooltip: {
+                          ...baseOptions(true).plugins?.tooltip,
+                          callbacks: { label: (item) => `${item.dataset.label} : ${item.formattedValue} %` },
+                        },
+                      },
+                      scales: {
+                        x: { ...baseOptions(true).scales?.x, stacked: true, max: 100, ticks: { color: INK, callback: (value) => `${value} %` } },
+                        y: { ...baseOptions(true).scales?.y, stacked: true },
+                      },
+                    }}
+                  />
+                )}
+              </Box>
+              <Box px={5} pb={5} overflowX="auto">
+                <Table size="sm">
+                  <Thead>
+                    <Tr>
+                      <Th>{t('dash.sub-domain')}</Th>
+                      <Th isNumeric>{t('dash.scored')}</Th>
+                      <Th isNumeric>{t('dash.average')}</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {data.bySubDomain.map((row) => (
+                      <Tr key={row.id}>
+                        <Td>
+                          <Text as="span" fontWeight={700} mr={2}>
+                            {row.code}
+                          </Text>
+                          {row.title}
+                        </Td>
+                        <Td isNumeric>{row.count}</Td>
+                        <Td isNumeric>
+                          <ScorePill value={row.average} />
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </Card>
+
+            <SimpleGrid columns={{ base: 1, '2xl': 2 }} spacing={4} mt={4}>
+              <Card>
+                <CardHeader title={t('dash.by-function')} subtitle={t('dash.by-function-subtitle')} />
+                <Box px={2} pb={4} overflowX="auto">
+                  <Table size="sm">
+                    <Thead>
+                      <Tr>
+                        <Th>{t('dash.function')}</Th>
+                        <Th isNumeric>{t('dash.kpi.sessions')}</Th>
+                        <Th isNumeric>{t('dash.observers')}</Th>
+                        <Th isNumeric>{t('dash.teachers')}</Th>
+                        <Th isNumeric>{t('dash.average')}</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {data.byFunction.map((row) => (
+                        <Tr key={row.function}>
+                          <Td fontWeight={600}>{functionLabel(row.function)}</Td>
+                          <Td isNumeric>
+                            <HStack justify="flex-end" spacing={3}>
+                              <MiniBar value={row.sessions} max={maxFunction} />
+                              <Text as="span" minW="24px">
+                                {row.sessions}
+                              </Text>
+                            </HStack>
+                          </Td>
+                          <Td isNumeric>{row.observers}</Td>
+                          <Td isNumeric>{row.teachers}</Td>
+                          <Td isNumeric>
+                            <ScorePill value={row.average} />
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
+              </Card>
+
+              <Card>
+                <CardHeader title={t('dash.by-area')} subtitle={t('dash.by-area-subtitle')} />
+                <Box px={2} pb={4} overflowX="auto">
+                  <Table size="sm">
+                    <Thead>
+                      <Tr>
+                        <Th>{t('dash.area')}</Th>
+                        <Th isNumeric>{t('dash.kpi.sessions')}</Th>
+                        <Th isNumeric>{t('dash.teachers')}</Th>
+                        <Th isNumeric>{t('dash.average')}</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {data.byArea.map((row) => (
+                        <Tr key={row.id}>
+                          <Td fontWeight={600}>{row.name}</Td>
+                          <Td isNumeric>
+                            <HStack justify="flex-end" spacing={3}>
+                              <MiniBar value={row.sessions} max={maxArea} />
+                              <Text as="span" minW="24px">
+                                {row.sessions}
+                              </Text>
+                            </HStack>
+                          </Td>
+                          <Td isNumeric>{row.teachers}</Td>
+                          <Td isNumeric>
+                            <ScorePill value={row.average} />
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
+              </Card>
+
+            </SimpleGrid>
+
+            <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={4} mt={4}>
+              <Card>
+                <CardHeader title={t('dash.behaviours')} subtitle={t('dash.behaviours-subtitle')} />
+                <Box px={5} pb={5}>
+                  {data.behaviours.length === 0 ? (
+                    <Text fontSize="13px" color="ink.500">
+                      {t('dash.no-pdp')}
+                    </Text>
+                  ) : (
+                    data.behaviours.map((row, index) => (
+                      <HStack key={row.id} py={2.5} spacing={3} borderTop={index ? '1px solid' : 'none'} borderColor="ink.100">
+                        <Text w="44px" flex="none" fontSize="13px" fontWeight={700} color="brand.600">
+                          {row.code}
+                        </Text>
+                        <Text flex={1} fontSize="14px" color="ink.800">
+                          {row.title}
+                        </Text>
+                        <Text fontSize="13px" color="ink.600" whiteSpace="nowrap">
+                          {t('dash.objectives', { count: row.count })}
+                        </Text>
+                      </HStack>
+                    ))
+                  )}
+                </Box>
+              </Card>
+
+              <Card>
+                <CardHeader title={t('dash.checklist')} subtitle={t('dash.checklist-subtitle')} />
+                <Box px={5} pb={5}>
+                  {data.checklist.map((row) => {
+                    const answered = row.yes + row.no;
+                    const share = answered ? (row.yes / answered) * 100 : 0;
+                    return (
+                      <Box key={row.id} py={1.5}>
+                        <HStack justify="space-between" mb={1} spacing={3}>
+                          <Text fontSize="13px" color="ink.800" noOfLines={1}>
+                            {row.code}. {row.document_name}
+                          </Text>
+                          <Text fontSize="12px" color="ink.600" whiteSpace="nowrap">
+                            {answered ? `${Math.round(share)} %` : '—'}
+                          </Text>
+                        </HStack>
+                        <Progress value={share} size="xs" borderRadius="full" bg="ink.100" />
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Card>
+            </SimpleGrid>
+          </>
+        )
+      )}
+    </Box>
   );
 };
 
