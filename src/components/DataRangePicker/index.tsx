@@ -29,59 +29,6 @@ const frenchDefinedRangeLabels: any = {
   'Custom Range': 'Période personnalisée',
 };
 
-const nepaliDefinedRangeLabels: any = {
-  Today: 'आज',
-  Yesterday: 'हिजो',
-  'Last 7 Days': 'पछिल्लो ७ दिनहरू',
-  'Last 30 Days': 'पछिल्लो ३० दिनहरू',
-  'This Week': 'यो हप्ता',
-  'Last Week': 'गत हप्ता',
-  'This Month': 'यो महिना',
-  'Last Month': 'गत महिना',
-  'Custom Range': 'अनुकूलित अवधि',
-};
-
-const nepaliLocale: Locale = {
-  code: 'ne',
-  formatDistance: (...args) => args.join(' '),
-  formatRelative: (...args) => args.join(' '),
-  localize: {
-    ordinalNumber: (n, _options) => {
-      return `${n}º`;
-    },
-    era: (n, _options) => {
-      return n === 1 ? 'AD' : 'BC';
-    },
-    quarter: (n, _options) => {
-      return `Q${n}`;
-    },
-    month: (n, _options) =>
-      [
-        'जनवरी',
-        'फेब्रुअरी',
-        'मार्च',
-        'अप्रिल',
-        'मे',
-        'जून',
-        'जुलाई',
-        'अगस्ट',
-        'सेप्टेम्बर',
-        'अक्टोबर',
-        'नोभेम्बर',
-        'डिसेम्बर',
-      ][n],
-    day: (n, _options) => ['आइतबार', 'सोमबार', 'मंगलबार', 'बुधबार', 'बिहिबार', 'शुक्रबार', 'शनिबार'][n],
-    dayPeriod: (n, _options) => {
-      return n < 12 ? 'AM' : 'PM';
-    },
-  },
-  formatLong: {
-    date: () => '...',
-    time: () => '...',
-    dateTime: () => '...',
-  },
-};
-
 type Props = {
   onChange: (range?: Range) => void;
 };
@@ -160,12 +107,11 @@ const DataRangePicker: React.FC<Props> = ({ onChange }) => {
             showDateDisplay={false}
             renderStaticRangeLabel={(staticRange) => {
               return (
-                (i18n.language === 'np' && staticRange.label && nepaliDefinedRangeLabels[staticRange.label]) ||
                 (i18n.language === 'fr' && staticRange.label && frenchDefinedRangeLabels[staticRange.label]) ||
                 staticRange.label
               );
             }}
-            locale={i18n.language === 'np' ? nepaliLocale : i18n.language === 'fr' ? fr : undefined}
+            locale={i18n.language === 'fr' ? fr : undefined}
             onChange={handleSelect}
             ranges={[state.selection]}
             rangeColors={['#3d91ff']}

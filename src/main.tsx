@@ -12,23 +12,14 @@ import { BrowserRouter } from 'react-router-dom';
 import '@fontsource/noto-sans';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
-import { CoachLogoCD, NepalFavicon } from './assets/images/logos';
+import { CoachLogoCD } from './assets/images/logos';
 
 const changeFavicon = () => {
   const link = document.querySelector('link[rel="icon"]');
-  if (link && import.meta.env.VITE_COUNTRY === 'np') {
-    link.setAttribute('href', NepalFavicon);
-    document.title = 'Sikshyak Mentoring';
-  }
-
-  if (link && import.meta.env.VITE_COUNTRY === 'sl') {
-    document.title = 'Coach SL';
-  }
-
-  if (link && import.meta.env.VITE_COUNTRY === 'cd') {
+  if (link) {
     link.setAttribute('href', CoachLogoCD);
-    document.title = 'Coach Digital RDC';
   }
+  document.title = 'Coach Digital RDC';
 };
 
 changeFavicon();

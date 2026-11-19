@@ -15,7 +15,7 @@ const UserCard: React.FC<Props> = ({ name, email, logout }) => {
   }, [name]);
 
   const handleSettings = () => {
-    navigate(`/${import.meta.env.VITE_COUNTRY}/admin/settings`);
+    navigate(`/admin/settings`);
   };
 
   return (

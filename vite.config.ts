@@ -9,7 +9,7 @@ export default ({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
 
   return defineConfig({
-    base: `/${process.env.VITE_COUNTRY}/admin/`,
+    base: '/admin/',
     plugins: [react()],
     resolve: {
       alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
