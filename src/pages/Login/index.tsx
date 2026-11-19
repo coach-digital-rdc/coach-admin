@@ -1,12 +1,11 @@
-import { CoachLogo } from '@/assets/images/logos';
-import Loader from '@/components/Base/Loader';
-import { UserContext } from '@/contexts/UserContext';
+import React, { useState } from 'react';
 import {
-  Alert,
-  AlertIcon,
-  AlertTitle,
+  Box,
   Button,
-  Center,
+  Flex,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
   HStack,
   Image,
   Input,
@@ -16,114 +15,154 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { AxiosError } from 'axios';
-import React, { useContext, useState } from 'react';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { CoachLogo } from '@/assets/images/logos';
+import { useUserContext } from '@/contexts/UserContext';
+import Icon from '@/components/Base/Icon';
+import { TopProgress } from '@/components/ui';
 
-const defaultValues = {
-  email: '',
-};
+const CODE_LENGTH = 8;
 
+// Login by a code sent by e-mail (no password)
 const Login: React.FC = () => {
-  const { sendOTPCode, login } = useContext(UserContext);
-  const {
-    control,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm({ defaultValues });
-  const [error, setError] = useState('');
-  const [showOTP, setShowOTP] = useState(false);
-  const [code, setCode] = useState('');
   const { t } = useTranslation();
+  const { sendOTPCode, login } = useUserContext();
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLogin: SubmitHandler<typeof defaultValues> = async ({ email }) => {
-    try {
-      setError('');
-      if (showOTP) {
-        await login({ email, code });
-      } else {
-        await sendOTPCode(email);
-        setShowOTP(true);
-      }
-    } catch (err: any) {
-      if ((err as AxiosError).response?.status === 400) {
-        setError((err as AxiosError<any>).response?.data?.error || 'Error');
-      } else if (showOTP) {
-        setError(t('Login.invalid-code') || '');
-      } else {
-        setError(t('Login.invalid-email') || '');
-      }
-      setCode('');
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError('');
+    if (step === 'email' && !/^\S+@\S+\.\S+$/.test(email.trim())) {
+      setError(t('Login.invalid-email'));
+      return;
     }
-    return;
+    setIsSubmitting(true);
+    try {
+      if (step === 'email') {
+        await sendOTPCode(email.trim().toLowerCase());
+        setStep('code');
+      } else {
+        await login({ email: email.trim().toLowerCase(), code });
+      }
+    } catch (err) {
+      const response = (err as AxiosError<any>).response;
+      setError(
+        response?.status === 400 && response.data?.error
+          ? response.data.error
+          : t(step === 'code' ? 'Login.invalid-code' : 'Login.invalid-email'),
+      );
+      setCode('');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Center w={'100vw'} h={'100vh'}>
-      <VStack
-        p={'24px'}
-        background={'Gray.$200'}
-        borderRadius={'16px'}
-        boxShadow={'0px 0px 10.0408px rgba(0, 0, 0, 0.1);'}
+    <Flex minH="100vh" bg="ink.50">
+      <TopProgress />
+      <Flex
+        display={{ base: 'none', lg: 'flex' }}
+        flex={1}
+        direction="column"
+        justify="space-between"
+        p={12}
+        color="white"
+        bgGradient="linear(135deg, brand.700 0%, brand.500 60%, brand.400 100%)"
+        position="relative"
+        overflow="hidden"
       >
-        <Image src={CoachLogo} maxH="100px" />
-        {isSubmitting ? (
-          <Center minW={'350px'} h={'200px'}>
-            <Loader />
-          </Center>
-        ) : (
-          <>
-            <VStack minW={'350px'} mt={'28px !important'} spacing={'16px'}>
-              <Controller
-                control={control}
-                rules={{ required: true }}
-                name="email"
-                render={({ field, fieldState: { error } }) => (
-                  <Input
-                    placeholder={t('Login.email') || ''}
-                    {...field}
-                    isInvalid={!!error}
-                    h={'48px'}
-                    disabled={showOTP}
-                  />
-                )}
+        <HStack spacing={3}>
+          <Image src={CoachLogo} alt="" w="44px" h="44px" borderRadius="12px" />
+          <Text fontWeight={800} fontSize="18px">
+            Coach Digital RDC
+          </Text>
+        </HStack>
+        <Box maxW="480px">
+          <Text fontSize="34px" fontWeight={800} lineHeight={1.15}>
+            {t('login.headline')}
+          </Text>
+          <Text mt={4} fontSize="16px" opacity={0.9}>
+            {t('login.description')}
+          </Text>
+        </Box>
+        <Text fontSize="13px" opacity={0.75}>
+          {t('login.footer')}
+        </Text>
+        <Box position="absolute" right="-120px" bottom="-120px" w="420px" h="420px" borderRadius="50%" bg="whiteAlpha.100" />
+        <Box position="absolute" right="80px" top="-80px" w="220px" h="220px" borderRadius="50%" bg="whiteAlpha.100" />
+      </Flex>
+
+      <Flex flex={{ base: 1, lg: '0 0 520px' }} align="center" justify="center" p={{ base: 6, md: 12 }}>
+        <Box as="form" onSubmit={submit} w="full" maxW="400px" noValidate>
+          <Image src={CoachLogo} alt="" w="56px" h="56px" mb={6} display={{ lg: 'none' }} />
+          <Text as="h1" fontSize="26px" fontWeight={800} color="ink.900">
+            {t('login.title')}
+          </Text>
+          <Text mt={2} mb={8} color="ink.600" fontSize="15px">
+            {step === 'email' ? t('login.email-intro') : t('login.code-intro', { email })}
+          </Text>
+
+          <VStack spacing={6} align="stretch">
+            <FormControl isInvalid={!!error && step === 'email'}>
+              <FormLabel fontSize="14px" fontWeight={600}>
+                {t('Login.email')}
+              </FormLabel>
+              <Input
+                type="email"
+                size="lg"
+                autoComplete="email"
+                autoFocus
+                value={email}
+                isDisabled={step === 'code'}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="nom@exemple.cd"
               />
-              {error && (
-                <Alert status="error">
-                  <AlertIcon />
-                  <AlertTitle>{error}</AlertTitle>
-                </Alert>
-              )}
-              {showOTP && (
-                <VStack my={10}>
-                  <Text>{t('Login.code-label')}</Text>
-                  <HStack>
-                    <PinInput otp onComplete={setCode}>
-                      <PinInputField />
-                      <PinInputField />
-                      <PinInputField />
-                      <PinInputField />
-                      <PinInputField />
-                      <PinInputField />
-                      <PinInputField />
-                      <PinInputField />
-                    </PinInput>
-                  </HStack>
-                </VStack>
-              )}
-            </VStack>
-            <Button
-              mt={'32px !important'}
-              w={'100%'}
-              onClick={handleSubmit(handleLogin)}
-              isDisabled={showOTP && code.length < 4}
-            >
-              {showOTP ? t('Login.verify-button') : t('Login.request-button')}
+              <FormErrorMessage>{error}</FormErrorMessage>
+            </FormControl>
+
+            {step === 'code' && (
+              <FormControl isInvalid={!!error}>
+                <FormLabel fontSize="14px" fontWeight={600}>
+                  {t('Login.code-label')}
+                </FormLabel>
+                <HStack spacing={{ base: 1, sm: 2 }}>
+                  <PinInput otp autoFocus value={code} onChange={setCode} size="lg" type="number" isDisabled={isSubmitting}>
+                    {Array.from({ length: CODE_LENGTH }).map((_, index) => (
+                      <PinInputField key={index} borderRadius="10px" bg="white" />
+                    ))}
+                  </PinInput>
+                </HStack>
+                <FormErrorMessage>{error}</FormErrorMessage>
+              </FormControl>
+            )}
+
+            <Button type="submit" size="lg" isLoading={isSubmitting} isDisabled={step === 'code' && code.length < CODE_LENGTH}>
+              {step === 'email' ? t('Login.request-button') : t('Login.verify-button')}
             </Button>
-          </>
-        )}
-      </VStack>
-    </Center>
+
+            {step === 'code' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<Icon name="arrow-left" size={16} color="#3373CC" />}
+                color="brand.600"
+                onClick={() => {
+                  setStep('email');
+                  setCode('');
+                  setError('');
+                }}
+              >
+                {t('login.change-email')}
+              </Button>
+            )}
+          </VStack>
+        </Box>
+      </Flex>
+    </Flex>
   );
 };
 

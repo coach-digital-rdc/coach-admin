@@ -12,8 +12,6 @@ import '@fontsource/noto-sans/500.css';
 import '@fontsource/noto-sans/600.css';
 import '@fontsource/noto-sans/700.css';
 import '@fontsource/noto-sans/800.css';
-import 'react-date-range/dist/styles.css';
-import 'react-date-range/dist/theme/default.css';
 import { CoachLogoCD } from './assets/images/logos';
 
 const changeFavicon = () => {

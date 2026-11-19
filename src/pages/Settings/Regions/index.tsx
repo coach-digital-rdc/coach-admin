@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Icon from '@/components/Base/Icon';
-import Loader from '@/components/Base/Loader';
+import { PageLoader } from '@/components/ui';
 import Menu from '@/components/Menu';
 import { IRegion } from '@/types';
 import {
@@ -107,7 +107,7 @@ const Regions = () => {
 
         {regions.isLoading ? (
           <Center minW={'400px'} h={'400px'}>
-            <Loader />
+            <PageLoader />
           </Center>
         ) : (
           <>
@@ -122,7 +122,7 @@ const Regions = () => {
                 justifyContent={'space-between'}
               >
                 <HStack>
-                  <Center w={'40px'} h={'40px'} borderRadius={'50%'} background={'Blue.$200'}>
+                  <Center w={'40px'} h={'40px'} borderRadius={'50%'} background={'brand.100'}>
                     <Icon name={'user'} />
                   </Center>
 

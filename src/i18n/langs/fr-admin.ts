@@ -398,6 +398,41 @@ const frAdmin = {
     'delete-title': 'Supprimer « {{name}} » ?',
     'file-name': 'etablissements',
   },
+  'settings-page': { subtitle: 'Votre compte et, pour les administrateurs, les utilisateurs, les régions et le journal.' },
+  users: {
+    name: 'Utilisateur',
+    you: '(vous)',
+    role: 'Rôle',
+    region: 'Région',
+    'all-regions': 'Toutes les régions',
+    edit: "Modifier l'utilisateur",
+    saved: 'Utilisateur enregistré',
+    deleted: 'Utilisateur supprimé',
+    'delete-title': 'Supprimer {{name}} ?',
+    'delete-text': "La personne ne pourra plus se connecter à l'administration.",
+  },
+  syncs: {
+    subtitle: 'Appareils synchronisés avec le serveur et date de leur dernière synchronisation.',
+    state: 'État',
+    count: 'Synchronisations',
+    unknown: 'Date inconnue',
+    'up-to-date': 'À jour',
+    outdated: 'Il y a {{count}} jour',
+    outdated_plural: 'Il y a {{count}} jours',
+    devices: 'Appareils',
+    'devices-outdated': 'Sans synchronisation depuis {{days}} jours ou plus',
+    'file-name': 'synchronisations',
+  },
+  login: {
+    headline: "Suivre l'accompagnement pédagogique des enseignant.e.s",
+    description:
+      "Séances d'observation, plans de développement professionnel et cercles d'apprentissage des observateurs de la RDC, au même endroit.",
+    footer: 'Programme PAAF · SERNAFOR · Ministère de l’Éducation Nationale et Nouvelle Citoyenneté',
+    title: 'Connexion',
+    'email-intro': 'Saisissez votre adresse e-mail : vous recevrez un code de connexion.',
+    'code-intro': 'Un code a été envoyé à {{email}}.',
+    'change-email': "Changer d'adresse e-mail",
+  },
 };
 
 export default frAdmin;
