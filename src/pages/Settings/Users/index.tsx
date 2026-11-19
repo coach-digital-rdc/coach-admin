@@ -1,125 +1,140 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
-import { Center, HStack, Text, VStack, useTheme } from '@chakra-ui/react';
-import { UserContext } from '@/contexts/UserContext';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Avatar, Box, Button, HStack, IconButton, Menu, MenuButton, MenuItem, MenuList, Text } from '@chakra-ui/react';
 import { SubmitHandler } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import Loader from '@/components/Base/Loader';
+import { DataColumn, DataTable, StatusBadge } from '@/components/ui';
+import { useUserContext } from '@/contexts/UserContext';
 import UserService from '@/services/user';
 import AuthService from '@/services/auth';
 import Icon from '@/components/Base/Icon';
-import { toast } from 'react-toastify';
-import Menu from '@/components/Menu';
+import { alertError, confirm, toast } from '@/common/alert';
+import { formatRegionPath } from '@/common/helper';
 import { IUser } from '@/types';
 import UserForm from './Form';
 
-const Users = () => {
-  const theme = useTheme();
+// Users of the administration: administrators edit, analysts read; both see their region only
+const Users: React.FC = () => {
   const { t } = useTranslation();
-  const { user } = useContext(UserContext);
-  const [currentUser, setCurrentUser] = useState<IUser>();
-  const [users, setUsers] = useState({
-    isLoading: true,
-    data: [] as IUser[],
-  });
+  const { user } = useUserContext();
+  const [editing, setEditing] = useState<IUser>();
+  const [users, setUsers] = useState<IUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const refreshUsers = useCallback(() => {
-    UserService.getUsers().then((users) => setUsers({ isLoading: false, data: users }));
+  const refresh = useCallback(() => {
+    setIsLoading(true);
+    UserService.getUsers()
+      .then(setUsers)
+      .catch(alertError)
+      .finally(() => setIsLoading(false));
   }, []);
 
-  useEffect(() => {
-    refreshUsers();
-  }, [refreshUsers]);
+  useEffect(refresh, [refresh]);
 
-  const handleRemoveUser = async (userId: IUser['id']) => {
-    try {
-      setUsers({ isLoading: true, data: [] });
-      await UserService.removeUser(userId);
-      refreshUsers();
-    } catch (err) {
-      toast.error(t('common.error-occurred'));
+  const remove = async (target: IUser) => {
+    const confirmed = await confirm({
+      title: t('users.delete-title', { name: target.name }),
+      text: t('users.delete-text'),
+      confirmText: t('common.delete'),
+      danger: true,
+      onConfirm: () => UserService.removeUser(target.id),
+    });
+    if (confirmed) {
+      toast.success(t('users.deleted'));
+      refresh();
     }
   };
 
-  const handleSubmitUser: SubmitHandler<IUser> = async (user) => {
+  const submit: SubmitHandler<IUser> = async (values) => {
     try {
-      setUsers({ isLoading: true, data: [] });
-      if ('id' in user) {
-        await UserService.updateUser(user.id, user);
-      } else {
-        await AuthService.sighup(user);
-      }
-    } catch (err) {
-      toast.error(t('common.error-occurred'));
+      if ('id' in values && values.id) await UserService.updateUser(values.id, values);
+      else await AuthService.sighup(values);
+      toast.success(t('users.saved'));
+      setEditing(undefined);
+      refresh();
+    } catch (error) {
+      alertError(error);
     }
-
-    setCurrentUser(undefined);
-    refreshUsers();
   };
 
-  const menuOptions = [
+  const columns: DataColumn<IUser>[] = [
     {
-      label: t('settings.tabs.users.edit'),
-      handleClick: (user: IUser) => setCurrentUser(user),
+      key: 'name',
+      header: t('users.name'),
+      render: (item) => (
+        <HStack spacing={3}>
+          <Avatar size="sm" name={item.name} bg="brand.100" color="brand.700" fontWeight={700} />
+          <Box>
+            <Text fontWeight={600}>
+              {item.name}
+              {item.id === user?.id && (
+                <Text as="span" ml={2} fontSize="12px" color="ink.500" fontWeight={400}>
+                  {t('users.you')}
+                </Text>
+              )}
+            </Text>
+            <Text fontSize="13px" color="ink.500">
+              {item.email}
+            </Text>
+          </Box>
+        </HStack>
+      ),
+      sortValue: (item) => item.name,
     },
     {
-      label: t('settings.tabs.users.remove'),
-      color: 'Red.$400',
-      handleClick: (user: IUser) => handleRemoveUser(user.id),
+      key: 'role',
+      header: t('users.role'),
+      render: (item) => <StatusBadge tone={item.role === 'admin' ? 'violet' : 'gray'}>{t(`app.roles.${item.role}`)}</StatusBadge>,
+      sortValue: (item) => item.role,
+    },
+    {
+      key: 'region',
+      header: t('users.region'),
+      render: (item) => (item.region ? formatRegionPath(item.region) : t('users.all-regions')),
+      sortValue: (item) => (item.region ? formatRegionPath(item.region) : ''),
+      hideBelow: 'md',
+    },
+    {
+      key: 'actions',
+      header: '',
+      width: '56px',
+      render: (item) =>
+        item.id !== user?.id && (
+          <Menu placement="bottom-end">
+            <MenuButton as={IconButton} size="sm" variant="ghost" aria-label={t('common.actions')} icon={<Icon name="ellipsis-v" size={18} color="#576375" />} />
+            <MenuList>
+              <MenuItem icon={<Icon name="edit" size={18} color="#3A4250" />} onClick={() => setEditing(item)}>
+                {t('common.edit')}
+              </MenuItem>
+              <MenuItem icon={<Icon name="trash-alt" size={18} color="#E81C0D" />} color="#9B1208" onClick={() => remove(item)}>
+                {t('common.delete')}
+              </MenuItem>
+            </MenuList>
+          </Menu>
+        ),
     },
   ];
 
   return (
     <>
-      <UserForm
-        handleClose={() => setCurrentUser(undefined)}
-        defaultValues={currentUser as IUser}
-        handleSubmitForm={handleSubmitUser}
+      <DataTable
+        data={users}
+        columns={columns}
+        isLoading={isLoading}
+        rowKey={(item) => item.id}
+        searchText={(item) => `${item.name} ${item.email}`}
+        initialSort={{ key: 'name', direction: 'asc' }}
+        emptyIcon="users-alt"
+        toolbar={
+          <Button
+            size="md"
+            leftIcon={<Icon name="plus" size={18} color="#FFFFFF" />}
+            onClick={() => setEditing({ name: '', email: '', role: '' } as unknown as IUser)}
+          >
+            {t('settings.tabs.users.new')}
+          </Button>
+        }
       />
-
-      <VStack alignItems={'flex-start'} width={'454px'} pl={'24px'}>
-        <Text fontWeight={600} fontSize={'20px'}>
-          {t('settings.tabs.users.title')}
-        </Text>
-        {users.isLoading ? (
-          <Center minW={'400px'} h={'400px'}>
-            <Loader />
-          </Center>
-        ) : (
-          <>
-            {users.data.map((currentUser) => (
-              <HStack
-                justifyContent={'space-between'}
-                borderBottom={'1px solid'}
-                borderColor={'Gray.$400'}
-                key={currentUser.id}
-                py={'12px'}
-                px={'16px'}
-                w={'100%'}
-              >
-                <HStack>
-                  <Center w={'40px'} h={'40px'} borderRadius={'50%'} background={'Blue.$200'}>
-                    <Icon name={'user'} />
-                  </Center>
-
-                  <Text>{currentUser.name}</Text>
-                </HStack>
-
-                {currentUser.id !== user?.id && <Menu items={menuOptions} currentItem={currentUser} />}
-              </HStack>
-            ))}
-
-            <HStack
-              px={'16px'}
-              py={'12px'}
-              cursor={'pointer'}
-              onClick={() => setCurrentUser({ name: '', email: '', password: '', role: '' } as any)}
-            >
-              <Icon name={'plus'} color={theme.colors.Primary['$200']} />
-              <Text color={'Primary.$200'}>{t('settings.tabs.users.new')}</Text>
-            </HStack>
-          </>
-        )}
-      </VStack>
+      <UserForm handleClose={() => setEditing(undefined)} defaultValues={editing as IUser} handleSubmitForm={submit} />
     </>
   );
 };

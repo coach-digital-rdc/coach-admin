@@ -1,122 +1,104 @@
-import { extendTheme } from "@chakra-ui/react";
+import { extendTheme } from '@chakra-ui/react';
 
+// Colours and font of the mobile application, so that both keep the same identity
 export const lightTheme = extendTheme({
   colors: {
-    Primary: {
-      $100: "#EBF1FF",
-      $200: "#3373CC",
-      $300: "#264673",
+    brand: {
+      50: '#EBF5FF',
+      100: '#C2E0FF',
+      200: '#99CBFF',
+      300: '#5C9DE6',
+      400: '#4486D9',
+      500: '#3373CC',
+      600: '#0052A3',
+      700: '#003F7D',
+      800: '#0B2D57',
+      900: '#071D3A',
     },
-    Secondary: {
-      $100: "#D9F2F2",
-      $200: "#66CCCC",
+    ink: {
+      50: '#F7F8FA',
+      100: '#F2F4F7',
+      200: '#DCE0E5',
+      300: '#C7CBD1',
+      400: '#9AA2AC',
+      500: '#7D8693',
+      600: '#576375',
+      700: '#3A4250',
+      800: '#1F242C',
+      900: '#111417',
     },
+    // Tokens of the first version of the administration, still used by some forms
+    Primary: { $100: '#EBF1FF', $200: '#3373CC', $300: '#264673' },
+    Secondary: { $100: '#D9F2F2', $200: '#66CCCC' },
     Gray: {
-      $100: "#FFFFFF",
-      $200: "#F9FAFB",
-      $300: "#F0F2F4",
-      $400: "#E3E6E9",
-      $500: "#C4CBD4",
-      $600: "#8F97A3",
-      $700: "#576375",
-      $800: "#16191D",
-    },
-    Red: {
-      $100: "#FCEEEE",
-      $200: "#F7D4D4",
-      $300: "#FF3333",
-      $400: "#8A0F0F",
-    },
-    Yellow: {
-      $100: "#FFFCEB",
-      $200: "#FFF7CC",
-      $300: "#FFD500",
-      $400: "#977E00",
-    },
-    Green: {
-      $100: "#EFFBF2",
-      $200: "#D6F5DE",
-      $300: "#33CC5A",
-      $400: "#1F7A36",
-    },
-    Blue: {
-      $100: "#EBF5FF",
-      $200: "#CCE6FF",
-      $300: "#0080FF",
-      $400: "#004D99",
+      $100: '#FFFFFF',
+      $200: '#F9FAFB',
+      $300: '#F0F2F4',
+      $400: '#E3E6E9',
+      $500: '#C4CBD4',
+      $600: '#8F97A3',
+      $700: '#576375',
+      $800: '#16191D',
     },
   },
 
   fonts: {
-    body: `'Inter', sans-serif`,
-    heading: `'Inter', sans-serif`,
-    mono: "Inter, sans-serif",
+    body: `'Noto Sans', system-ui, sans-serif`,
+    heading: `'Noto Sans', system-ui, sans-serif`,
+    mono: `ui-monospace, Menlo, monospace`,
   },
 
   fontSizes: {
-    D_lg: "96px",
-    D_md: "64px",
-    D_sm: "55px",
-    D_xs: "44px",
-    H_xxl: "40px",
-    H_xl: "36px",
-    H_lg: "32px",
-    H_md: "28px",
-    H_sm: "24px",
-    H_xs: "20px",
-    L_lg: "18px",
-    L_md: "16px",
-    L_sm: "14px",
-    L_xs: "12px",
+    H_lg: '32px',
+    H_md: '28px',
+    H_sm: '24px',
+    H_xs: '20px',
+    L_lg: '18px',
+    L_md: '16px',
+    L_sm: '14px',
+    L_xs: '12px',
   },
 
-  fontWeights: {
-    hairline: 100,
-    thin: 200,
-    light: 300,
-    normal: 400,
-    medium: 500,
-    semibold: 600,
-    bold: 700,
-    extrabold: 800,
-    black: 900,
+  radii: { card: '16px' },
+
+  shadows: {
+    card: '0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)',
+    raised: '0 12px 24px -6px rgba(16, 24, 40, 0.12), 0 4px 8px -4px rgba(16, 24, 40, 0.06)',
   },
 
-  lineHeights: {
-    normal: "normal",
-    none: 1,
-    shorter: 1.25,
-    short: 1.375,
-    base: 1.5,
-    tall: 1.625,
-    taller: "2",
-    "3": ".75rem",
-    "4": "1rem",
-    "5": "1.25rem",
-    "6": "1.5rem",
-    "7": "1.75rem",
-    "8": "2rem",
-    "9": "2.25rem",
-    "10": "2.5rem",
-  },
-
-  letterSpacings: {
-    tighter: "-0.05em",
-    tight: "-0.025em",
-    normal: "0",
-    wide: "0.025em",
-    wider: "0.05em",
-    widest: "0.1em",
+  styles: {
+    global: {
+      body: { bg: 'ink.50', color: 'ink.900' },
+      '::selection': { bg: 'brand.100' },
+    },
   },
 
   components: {
-    Button: {},
+    Button: {
+      baseStyle: { fontWeight: 600, borderRadius: '10px' },
+      defaultProps: { colorScheme: 'brand' },
+    },
+    Input: {
+      defaultProps: { focusBorderColor: 'brand.500' },
+      variants: { outline: { field: { bg: 'white', borderRadius: '10px', borderColor: 'ink.200' } } },
+    },
+    Select: {
+      defaultProps: { focusBorderColor: 'brand.500' },
+      variants: { outline: { field: { bg: 'white', borderRadius: '10px', borderColor: 'ink.200' } } },
+    },
+    Textarea: {
+      defaultProps: { focusBorderColor: 'brand.500' },
+      variants: { outline: { bg: 'white', borderRadius: '10px', borderColor: 'ink.200' } },
+    },
+    Tabs: { defaultProps: { colorScheme: 'brand' } },
+    Switch: { defaultProps: { colorScheme: 'brand' } },
+    Checkbox: { defaultProps: { colorScheme: 'brand' } },
+    Radio: { defaultProps: { colorScheme: 'brand' } },
+    Progress: { defaultProps: { colorScheme: 'brand' } },
+    Spinner: { defaultProps: { color: 'brand.500' } },
+    Badge: { baseStyle: { borderRadius: '999px', px: 2, py: 0.5, textTransform: 'none', fontWeight: 600 } },
+    Drawer: { sizes: { md: { dialog: { maxW: '480px' } } } },
+    Modal: { baseStyle: { dialog: { borderRadius: '16px' } } },
+    Menu: { baseStyle: { list: { borderRadius: '12px', boxShadow: 'raised', py: 2 } } },
   },
 });
-
-export const breakpoints = {
-  desktop: 1440,
-  notebook: 1280,
-  tablet: 768,
-  mobile: 320,
-};

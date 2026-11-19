@@ -1,0 +1,87 @@
+.cd-swal {
+  border-radius: 20px !important;
+  padding: 28px 24px 24px !important;
+  font-family: 'Noto Sans', system-ui, sans-serif !important;
+}
+
+.cd-swal .swal2-title {
+  color: #111417;
+  font-size: 20px;
+  font-weight: 700;
+  padding-top: 8px;
+}
+
+.cd-swal .swal2-html-container {
+  color: #576375;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.cd-swal .swal2-actions {
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cd-swal-btn {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  min-width: 112px;
+  padding: 10px 18px;
+  transition: background 150ms, box-shadow 150ms;
+}
+
+.cd-swal-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px #c2e0ff;
+}
+
+.cd-swal-btn-primary {
+  background: #3373cc;
+  color: #fff;
+}
+
+.cd-swal-btn-primary:hover {
+  background: #0052a3;
+}
+
+.cd-swal-btn-danger {
+  background: #e81c0d;
+  color: #fff;
+}
+
+.cd-swal-btn-danger:hover {
+  background: #9b1208;
+}
+
+.cd-swal-btn-ghost {
+  background: #f2f4f7;
+  color: #3a4250;
+}
+
+.cd-swal-btn-ghost:hover {
+  background: #dce0e5;
+}
+
+.cd-swal .swal2-loader {
+  border-color: #3373cc transparent #3373cc transparent;
+}
+
+.cd-swal-toast {
+  border-radius: 12px !important;
+  box-shadow: 0 12px 24px -6px rgba(16, 24, 40, 0.18) !important;
+  font-family: 'Noto Sans', system-ui, sans-serif !important;
+}
+
+.cd-swal-toast .swal2-title {
+  color: #111417 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.cd-swal-toast .swal2-timer-progress-bar {
+  background: #3373cc;
+}

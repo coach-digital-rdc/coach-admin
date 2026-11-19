@@ -1,8 +1,7 @@
-import Icon from '@/components/Base/Icon';
-import Loader from '@/components/Base/Loader';
+import { Card, PageLoader } from '@/components/ui';
 import { UserContext } from '@/contexts/UserContext';
 import { IUser } from '@/types';
-import { Button, Center, FormControl, FormErrorMessage, FormLabel, Input, Text, VStack } from '@chakra-ui/react';
+import { Avatar, Box, Button, FormControl, FormErrorMessage, FormLabel, HStack, Input, Text } from '@chakra-ui/react';
 import React, { useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -27,23 +26,20 @@ const EditUser = () => {
   return (
     <>
       {isLoading ? (
-        <Center minW={'350px'} h={'200px'}>
-          <Loader />
-        </Center>
+        <PageLoader />
       ) : (
-        <VStack alignItems={'flex-start'} width={'454px'} pl={'24px'}>
-          <Text fontWeight={600} fontSize={'20px'}>
-            {t('settings.tabs.user.title')}
-          </Text>
-          <Text fontWeight={400} mt={'4px'} color={'Gray.$700'}>
-            {t('settings.tabs.user.description')}
-          </Text>
-
-          <Center w={'100%'} my={'40px'}>
-            <Center w={'80px'} h={'80px'} borderRadius={'50%'} background={'Blue.$200'}>
-              <Icon name={'user'} size={32} />
-            </Center>
-          </Center>
+        <Card p={6} maxW="520px" w="full">
+          <HStack spacing={4} mb={6}>
+            <Avatar size="lg" name={user?.name} bg="brand.100" color="brand.700" fontWeight={700} />
+            <Box>
+              <Text fontWeight={700} fontSize={'18px'}>
+                {t('settings.tabs.user.title')}
+              </Text>
+              <Text fontSize="14px" color={'ink.600'}>
+                {t('settings.tabs.user.description')}
+              </Text>
+            </Box>
+          </HStack>
 
           <form
             onSubmit={handleSubmit(handleSubmitForm)}
@@ -53,7 +49,7 @@ const EditUser = () => {
               <FormLabel htmlFor="name">{t('settings.tabs.user.name')}</FormLabel>
               <Input id="name" defaultValue={user?.name} {...register('name', { required: true })} />
               <FormErrorMessage>
-                {errors.name && errors.name.type === 'required' && 'Name is required'}
+                {errors.name && errors.name.type === 'required' && t('observers.required')}
               </FormErrorMessage>
             </FormControl>
 
@@ -61,15 +57,15 @@ const EditUser = () => {
               <FormLabel htmlFor="name">{t('settings.tabs.user.email')}</FormLabel>
               <Input id="name" defaultValue={user?.email} {...register('email', { required: true })} />
               <FormErrorMessage>
-                {errors.email && errors.email.type === 'required' && 'Email is required'}
+                {errors.email && errors.email.type === 'required' && t('observers.required')}
               </FormErrorMessage>
             </FormControl>
 
-            <Button colorScheme="blue" type="submit" w={'100%'} mt={'40px'}>
+            <Button type="submit" mt={'28px'} alignSelf="flex-start">
               {t('settings.tabs.user.save')}
             </Button>
           </form>
-        </VStack>
+        </Card>
       )}
     </>
   );

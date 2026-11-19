@@ -3,10 +3,9 @@ import StorageService from '@/services/storage/storage.service';
 import { redirect } from 'react-router-dom';
 import AuthService from '@/services/auth';
 import { IRegion, IUser } from '../../types';
-import { toast } from 'react-toastify';
+import { toast } from '@/common/alert';
 import UserService from '@/services/user';
 import { useTranslation } from 'react-i18next';
-import { throws } from 'assert';
 
 export type UserContextProps = {
   login: (prop: { email: string; code: string }) => Promise<void>;
@@ -25,16 +24,13 @@ interface Props {
 }
 
 const UserContextProvider = ({ children }: Props) => {
-  const [user, setUser] = useState<IUser>();
+  // Read at once, so that a page opened by its address is not sent back to the login
+  const [user, setUser] = useState<IUser | undefined>(() => StorageService.getUser());
   const { i18n } = useTranslation();
   const [userRegionsPath, setUserRegionsPath] = useState<IRegion[]>([]);
 
   useEffect(() => {
-    let storageUser = StorageService.getUser();
-    if (storageUser) {
-      setUser(storageUser);
-      if (storageUser.language) i18n.changeLanguage(storageUser.language);
-    }
+    if (user?.language) i18n.changeLanguage(user.language);
   }, []);
 
   useEffect(() => {

@@ -1,39 +1,56 @@
-import Loader from '@/components/Base/Loader';
-import Table from '@/components/Table';
+import React, { useEffect, useState } from 'react';
+import { Text } from '@chakra-ui/react';
+import { useTranslation } from 'react-i18next';
+import { DataColumn, DataTable } from '@/components/ui';
 import LogsService from '@/services/logs';
 import { ILogs } from '@/types';
-import { Center, VStack } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { alertError } from '@/common/alert';
+import { formatDate } from '@/common/labels';
 
+// Journal of the actions of the administration users
 const Logs: React.FC = () => {
-  const [logs, setLogs] = useState<ILogs[]>([]);
-  const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
+  const [logs, setLogs] = useState<ILogs[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    LogsService.getLogs().then((data) => {
-      setLogs(data);
-      setLoading(false);
-    });
+    LogsService.getLogs()
+      .then(setLogs)
+      .catch(alertError)
+      .finally(() => setIsLoading(false));
   }, []);
 
-  return loading ? (
-    <Center minW={'350px'} h={'200px'}>
-      <Loader />
-    </Center>
-  ) : (
-    <Table
-      columns={[
-        { title: t('settings.tabs.logs.table.user'), renderColumn: (log: ILogs) => log.user.name, width: '30%' },
-        { title: t('settings.tabs.logs.table.action'), renderColumn: (log: ILogs) => log.description, width: '30%' },
-        {
-          title: t('settings.tabs.logs.table.date'),
-          renderColumn: (log: ILogs) => new Date(log.created_at).toLocaleString(),
-          width: '40%',
-        },
-      ]}
+  const columns: DataColumn<ILogs>[] = [
+    {
+      key: 'date',
+      header: t('settings.tabs.logs.table.date'),
+      render: (log) => <Text whiteSpace="nowrap">{formatDate(log.created_at, true)}</Text>,
+      sortValue: (log) => log.created_at,
+      width: '180px',
+    },
+    { key: 'user', header: t('settings.tabs.logs.table.user'), render: (log) => log.user?.name || '—', sortValue: (log) => log.user?.name },
+    {
+      key: 'action',
+      header: t('settings.tabs.logs.table.action'),
+      render: (log) => (
+        <Text fontFamily="mono" fontSize="13px" color="ink.700">
+          {log.description}
+        </Text>
+      ),
+      sortValue: (log) => log.description,
+    },
+  ];
+
+  return (
+    <DataTable
       data={logs}
+      columns={columns}
+      isLoading={isLoading}
+      rowKey={(log) => log.id}
+      searchText={(log) => `${log.user?.name} ${log.description}`}
+      initialSort={{ key: 'date', direction: 'desc' }}
+      pageSize={50}
+      emptyIcon="receipt-alt"
     />
   );
 };

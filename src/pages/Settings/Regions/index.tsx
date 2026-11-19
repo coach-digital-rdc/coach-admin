@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Icon from '@/components/Base/Icon';
-import Loader from '@/components/Base/Loader';
+import { PageLoader } from '@/components/ui';
 import Menu from '@/components/Menu';
 import { IRegion } from '@/types';
 import {
@@ -19,7 +19,7 @@ import {
   useTheme,
 } from '@chakra-ui/react';
 import RegionForm from './Form';
-import { toast } from 'react-toastify';
+import { toast } from '@/common/alert';
 import { useTranslation } from 'react-i18next';
 import RegionService from '@/services/region';
 import RegionImportModal from './RegionImportModal';
@@ -107,7 +107,7 @@ const Regions = () => {
 
         {regions.isLoading ? (
           <Center minW={'400px'} h={'400px'}>
-            <Loader />
+            <PageLoader />
           </Center>
         ) : (
           <>
@@ -122,7 +122,7 @@ const Regions = () => {
                 justifyContent={'space-between'}
               >
                 <HStack>
-                  <Center w={'40px'} h={'40px'} borderRadius={'50%'} background={'Blue.$200'}>
+                  <Center w={'40px'} h={'40px'} borderRadius={'50%'} background={'brand.100'}>
                     <Icon name={'user'} />
                   </Center>
 

@@ -44,14 +44,14 @@ const UserForm: React.FC<Props> = ({ defaultValues, handleSubmitForm, handleClos
   return (
     <Drawer isOpen={!!defaultValues} placement="right" onClose={handleClose} size="md">
       <DrawerOverlay />
-      <DrawerContent roundedLeft={14}>
+      <DrawerContent>
         <form
           onSubmit={handleSubmit(handleSubmitForm)}
           style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
         >
-          <DrawerCloseButton mt={2} color="Primary.$200" />
+          <DrawerCloseButton mt={2} />
 
-          <DrawerHeader>{defaultValues && 'id' in defaultValues ? 'Update user' : 'New user'}</DrawerHeader>
+          <DrawerHeader>{defaultValues && 'id' in defaultValues ? t('users.edit') : t('settings.tabs.users.new')}</DrawerHeader>
 
           <DrawerBody>
             <FormLabel htmlFor="name">{t('settings.tabs.users.form.name')}</FormLabel>
