@@ -59,6 +59,9 @@ export const confirm = async ({
   icon = danger ? 'warning' : 'question',
   onConfirm,
 }: ConfirmOptions): Promise<boolean> => {
+  // Opened once the click that asked for it is over, so that a menu closing under the
+  // pointer does not count as a click outside the dialog
+  await new Promise((resolve) => setTimeout(resolve, 0));
   const result = await base.fire({
     icon,
     title,
